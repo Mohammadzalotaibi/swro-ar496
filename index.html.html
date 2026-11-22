@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SWRO Plant AR · مصنع التناضح العكسي</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#e9f2f9;--bg2:#bcd3e6;--pn:rgba(255,255,255,.9);--tx:#0e2233;--mu:#4d6477;--ac:#0a7ea4;--bd:rgba(14,34,51,.16);--chip:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#07151f;--bg2:#0d2b40;--pn:rgba(10,24,36,.9);--tx:#e6f1f8;--mu:#93aabb;--ac:#3cc8f0;--bd:rgba(230,241,248,.16);--chip:#0f2638}}
+:root[data-theme="dark"]{--bg1:#07151f;--bg2:#0d2b40;--pn:rgba(10,24,36,.9);--tx:#e6f1f8;--mu:#93aabb;--ac:#3cc8f0;--bd:rgba(230,241,248,.16);--chip:#0f2638}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;font-family:Inter,Tajawal,system-ui,sans-serif;color:var(--tx);background:linear-gradient(var(--bg1),var(--bg2))}
+[dir=rtl] body,[dir=rtl] button{font-family:Tajawal,Inter,system-ui,sans-serif}
+body.ar{background:#000}
+#vid{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+body.ar #vid{display:block}
+canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.top{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;padding:10px;display:flex;gap:8px;align-items:center;z-index:5;pointer-events:none}
+.top>*{pointer-events:auto}
+.ttl{font-weight:700;font-size:14px;background:var(--pn);border:1px solid var(--bd);padding:7px 11px;border-radius:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button{font:inherit;color:var(--tx);background:var(--pn);border:1px solid var(--bd);border-radius:12px;padding:7px 11px;cursor:pointer;font-size:13px;backdrop-filter:blur(8px)}
+button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.chips{position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);left:0;right:0;display:flex;gap:6px;overflow-x:auto;padding:4px 10px;z-index:5;scrollbar-width:none}
+.chips button{white-space:nowrap;background:var(--chip);flex:none;font-size:12px;padding:6px 10px}
+.sheet{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom,0px);max-height:46%;overflow:auto;background:var(--pn);border-top:1px solid var(--bd);border-radius:18px 18px 0 0;padding:14px 14px 18px;z-index:6;backdrop-filter:blur(12px)}
+.sheet h2{margin:0 0 2px;font-size:17px}
+.tag{display:inline-block;font-size:11px;color:var(--ac);border:1px solid var(--ac);border-radius:99px;padding:1px 8px;margin-bottom:6px;direction:ltr}
+.sheet p{margin:4px 0 10px;font-size:13px;line-height:1.55;color:var(--mu)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.st{border:1px solid var(--bd);border-radius:12px;padding:8px 10px}
+.st b{display:block;font-size:15px;direction:ltr;unicode-bidi:plaintext}
+.st span{font-size:11px;color:var(--mu)}
+.src{font-size:11px;color:var(--mu);margin-top:8px}
+.bar{height:20px;border-radius:6px;background:var(--ac);color:#fff;font-size:12px;display:flex;align-items:center;padding:0 8px;transition:width .6s;white-space:nowrap;direction:ltr;margin:3px 0 10px}
+.hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 48%);font-size:11px;color:var(--mu);z-index:4;background:var(--pn);border-radius:99px;padding:3px 10px;border:1px solid var(--bd);white-space:nowrap}
+.ctl{position:fixed;inset-inline-end:10px;top:calc(env(safe-area-inset-top,0px) + 104px);display:flex;flex-direction:column;gap:6px;z-index:5}.ctl button{font-size:12px;padding:7px 10px;text-align:start}.xb{float:inline-end;margin-inline-start:8px;background:#b3261e;color:#fff;border-color:#b3261e}
+#toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 100px);left:50%;transform:translateX(-50%);background:#b3261e;color:#fff;border-radius:10px;padding:8px 12px;font-size:12px;z-index:9;display:none;max-width:90%}
+</style>
+</head>
+<body>
+<video id="vid" playsinline muted></video>
+<div class="top">
+  <div class="ttl" id="ttl"></div>
+  <button id="bLang">ع</button>
+  <button id="bMode"></button>
+  <button id="bEn"></button>
+</div>
+<div class="chips" id="chips"></div>
+<div class="ctl"><button id="bLay"></button><button id="bRot"></button><button id="bStop"></button></div>
+<div class="hint" id="hint"></div>
+<div id="toast"></div>
+<div class="sheet" id="sheet"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+var lang="en",mode="3d",sel=-1,pxOn=true,showEn=false,rot=true,paused=false,distGoal=null,phGoal=null;
+var UI={
+ en:{t:"SWRO Plant · AR Explorer",ar:"AR view",d3:"3D view",en:"⚡ Energy lab",ov:"Overview",h3:"Drag to rotate · pinch to zoom · tap a unit",hA:"Pinch to scale · drag to rotate · tap a unit",src:"Source",cam:"Camera unavailable here, so the 3D view is shown. Open the page in your phone’s browser for AR.",tr:"per train",lay:"Layout",rt:"Rotate",st:"Stop",pl:"Play",ex:"✕ Exit"},
+ ar:{t:"مصنع التناضح العكسي · مستكشف AR",ar:"عرض AR",d3:"عرض 3D",en:"⚡ مختبر الطاقة",ov:"نظرة عامة",h3:"اسحب للتدوير · قرّب بإصبعين · المس وحدة",hA:"قرّب بإصبعين للتكبير · اسحب للتدوير · المس وحدة",src:"المصدر",cam:"الكاميرا غير متاحة هنا، لذلك يظهر العرض الثلاثي الأبعاد. افتح الصفحة في متصفح الجوال لتجربة AR.",tr:"لكل خط",lay:"المخطط",rt:"تدوير",st:"إيقاف",pl:"تشغيل",ex:"✕ خروج"}
+};
+var OV={
+ name:{en:"Al-Jubail SWRO Plant",ar:"مصنع تحلية مياه البحر بالتناضح العكسي – الجبيل"},
+ code:"10,000 m³/day",
+ d:{en:"A common pretreatment system, four identical parallel RO trains (one is drawn in detail) and a common post-treatment and storage system. Design basis: seawater TDS 45,388 mg/L, 25 °C, pH 8.3, boron 5 mg/L.",ar:"نظام معالجة أولية مشترك، وأربعة خطوط تناضح عكسي متطابقة ومتوازية (يظهر أحدها بالتفصيل)، ونظام مشترك للمعالجة اللاحقة والتخزين. أساس التصميم: ملوحة ماء البحر 45,388 mg/L، 25 °C، pH 8.3، بورون 5 mg/L."},
+ s:[["10,000 m³/day","Net product (416.67 m³/h)","صافي الإنتاج (416.67 m³/h)"],["1,219.14 m³/h","Seawater intake","سحب ماء البحر"],["34.2%","Overall plant recovery","الاسترجاع الكلي للمصنع"],["37.5%","RO recovery per train","استرجاع التناضح العكسي لكل خط"],["1,262.7 kW","Total electrical power","القدرة الكهربائية الكلية"],["3.03 kWh/m³","Specific energy (net product)","الطاقة النوعية (صافي الإنتاج)"],["10,152 MWh/yr","Annual energy (8,040 h)","الطاقة السنوية (8,040 h)"],["708.64 m³/h","Brine at 72,428 mg/L","محلول ملحي 72,428 mg/L"]],
+ src:"Exec. Summary, §2.2.11"
+};
+// id, code, color, name, desc, stats, src
+var U=[
+{c:"S-101 · P-101",col:0x7a8b99,n:{en:"Seawater Intake & Intake Pump",ar:"مأخذ ماء البحر ومضخة السحب"},
+ d:{en:"Seawater passes the intake screen and is lifted by the intake pump to 4.0 bar g, which pushes it through the UF system and the cartridge filter. The pump handles the largest flow in the plant.",ar:"يمر ماء البحر عبر مصفاة المأخذ وترفعه مضخة السحب إلى 4.0 bar g ليمر عبر الترشيح الفائق ومرشح الخراطيش. هذه المضخة تتعامل مع أكبر تدفق في المصنع."},
+ s:[["1,219.14 m³/h","Seawater flow (29,259 m³/day)","تدفق ماء البحر (29,259 m³/day)"],["45,388 mg/L","TDS · 25 °C · pH 8.3","الملوحة · 25 °C · pH 8.3"],["0 → 4.0 bar g","Pressure rise","ارتفاع الضغط"],["190.1 kW","Electrical power (15.1% of plant)","القدرة الكهربائية (15.1% من المصنع)"],["135.5 / 180.6 kW","Hydraulic / shaft power","القدرة الهيدروليكية / على العمود"],["0.75 / 0.95","Pump / motor efficiency","كفاءة المضخة / المحرك"]],src:"§2.2.3, Table 2.22"},
+{c:"UF-101",col:0x2bb3a3,n:{en:"Ultrafiltration (UF)",ar:"وحدة الترشيح الفائق (UF)"},
+ d:{en:"Removes suspended matter while dissolved salts pass through. Part of the feed leaves as backwash waste, which is collected and treated separately.",ar:"تزيل المواد العالقة بينما تمر الأملاح الذائبة. يخرج جزء من التغذية كماء غسيل عكسي يُجمع ويُعالج بشكل منفصل."},
+ s:[["93%","Net UF recovery (assumed)","الاسترجاع الصافي للـ UF (مفترض)"],["1,219.14 → 1,133.80 m³/h","Feed → filtrate","التغذية ← الراشح"],["85.34 m³/h","Backwash waste W₁ (7.0%, 2,048 m³/day)","ماء الغسيل العكسي W₁ (7.0%، 2,048 m³/day)"],["1.0 bar","Pressure drop (outlet 3.0 bar g)","هبوط الضغط (المخرج 3.0 bar g)"],["55,333.8 → 51,460.5 kg/h","Salt in → salt out (filtrate)","الملح الداخل ← الخارج (الراشح)"],["45,388 mg/L","TDS unchanged","الملوحة دون تغيّر"]],src:"§2.1.10, Table 2.14"},
+{c:"CF-101",col:0xd9a441,n:{en:"Cartridge Filter & Chemical Dosing",ar:"مرشح الخراطيش والجرعات الكيميائية"},
+ d:{en:"Polishes the water and doses the chemicals that protect the membranes. The flow and salt content do not change. The three small tanks represent the dosing chemicals.",ar:"يصقل الماء ويُحقن بالمواد الكيميائية التي تحمي الأغشية. لا يتغير التدفق ولا محتوى الملح. الخزانات الصغيرة الثلاثة تمثل مواد الجرعات."},
+ s:[["1,133.80 m³/h","Flow (283.45 m³/h per train)","التدفق (283.45 m³/h لكل خط)"],["0.7 bar → 2.3 bar g","Pressure drop → outlet","هبوط الضغط ← المخرج"],["24 mg/L · 27.2 kg/h","HCl (pH 8.3 → 7.0)","حمض HCl (pH 8.3 ← 7.0)"],["3.0 mg/L · 3.40 kg/h","Sodium metabisulfite","ميتابيسلفيت الصوديوم"],["2.0 mg/L · 2.27 kg/h","Antiscalant","مانع التقشر"],["2.0 mg/L · 2.44 kg/h","NaOCl at intake (optional)","هيبوكلوريت الصوديوم عند المأخذ (اختياري)"]],src:"Table 2.13, Table 2.21"},
+{c:"P-102",col:0x2a6fdb,n:{en:"High-Pressure Pump",ar:"مضخة الضغط العالي"},
+ d:{en:"Raises only part of the feed to RO pressure, because the pressure exchanger pressurizes the rest. It is the largest power consumer in the plant.",ar:"ترفع جزءاً فقط من التغذية إلى ضغط التناضح العكسي، لأن مبادل الضغط يضغط الباقي. وهي أكبر مستهلك للطاقة في المصنع."},
+ s:[["106.29 m³/h","Flow per train","التدفق لكل خط"],["2.0 → 62.96 bar g","Pressure rise (ΔP 60.96 bar)","ارتفاع الضغط (ΔP 60.96 bar)"],["234.4 kW","Electrical power per train","القدرة الكهربائية لكل خط"],["937.4 kW","Four trains (74.2% of plant)","أربعة خطوط (74.2% من المصنع)"],["180.0 / 225.0 kW","Hydraulic / shaft power","القدرة الهيدروليكية / على العمود"],["0.80 / 0.96","Pump / motor efficiency","كفاءة المضخة / المحرك"]],src:"§2.2.4, Table 2.26"},
+{c:"ERD-101",col:0xe7d3a8,n:{en:"Isobaric Pressure Exchanger (PX)",ar:"مبادل الضغط متساوي الضغط (PX)"},
+ d:{en:"Transfers pressure directly from the high-pressure brine to incoming seawater and uses no electricity. It supplies about 61% of the pressurization duty of each train.",ar:"ينقل الضغط مباشرة من المحلول الملحي عالي الضغط إلى ماء البحر الداخل ولا يستهلك كهرباء. يوفر نحو 61% من عمل الضغط لكل خط."},
+ s:[["0.965","PX efficiency","كفاءة المبادل"],["291.5 kW","Pressure energy recovered per train","طاقة الضغط المستردة لكل خط"],["60.7%","Share of hydraulic duty","حصته من العمل الهيدروليكي"],["10.6 kW (3.5%)","Lost by friction and mixing","مفقودة بالاحتكاك والخلط"],["62.38 → 1.0 bar g","Brine pressure in → out (177.16 m³/h)","ضغط المحلول الملحي دخولاً ← خروجاً"],["61.23 bar g","Seawater leaving the PX","ماء البحر الخارج من المبادل"],["73,834 → 72,428 mg/L","Brine TDS after mixing (x = 0.05)","ملوحة المحلول بعد الخلط (x = 0.05)"],["0.05 / 0.01","Mixing / lubrication fraction","نسبة الخلط / التزييت"]],src:"§2.2.5, Table 2.1"},
+{c:"P-103",col:0x5a8fe8,n:{en:"Booster Pump",ar:"مضخة التعزيز"},
+ d:{en:"Adds the small pressure that the PX could not supply (friction and mixing losses) before the stream joins the high-pressure pump discharge.",ar:"تضيف الضغط الصغير الذي لم يستطع المبادل توفيره (فواقد الاحتكاك والخلط) قبل أن يلتحم التيار مع تصريف مضخة الضغط العالي."},
+ s:[["177.16 m³/h","Flow per train","التدفق لكل خط"],["61.23 → 62.96 bar g","Pressure rise (ΔP 1.73 bar)","ارتفاع الضغط (ΔP 1.73 bar)"],["11.2 kW","Electrical power per train","القدرة الكهربائية لكل خط"],["44.8 kW","Four trains (3.5% of plant)","أربعة خطوط (3.5% من المصنع)"],["8.5 / 10.6 kW","Hydraulic / shaft power","القدرة الهيدروليكية / على العمود"],["0.80 / 0.95","Pump / motor efficiency","كفاءة المضخة / المحرك"]],src:"§2.2.6, Table 2.26"},
+{c:"RO-101",col:0x35b5c9,n:{en:"RO Membrane Unit",ar:"وحدة أغشية التناضح العكسي"},
+ d:{en:"33 pressure vessels × 7 elements = 231 TM820M-400 membrane elements per train (all 33 vessels are drawn). Feed is split into low-salinity permeate and concentrated brine.",ar:"33 وعاء ضغط × 7 عناصر = 231 عنصر غشاء TM820M-400 لكل خط (تظهر الأوعية الـ 33 كلها). تنقسم التغذية إلى ماء منتَج منخفض الملوحة ومحلول ملحي مركز."},
+ s:[["231 (33 × 7)","TM820M-400 elements per train","عناصر TM820M-400 لكل خط"],["283.45 m³/h","Feed · 46,264 mg/L · 62.96 bar","التغذية · 46,264 mg/L · 62.96 bar"],["106.29 m³/h","Permeate · 312.4 mg/L","المنتَج · 312.4 mg/L"],["177.16 m³/h","Brine · 73,834 mg/L · 62.38 bar","المحلول الملحي · 73,834 mg/L · 62.38 bar"],["37.5%","Water recovery","استرجاع الماء"],["12.336 L/(m²·h)","Average flux","متوسط الفيض"],["0.574 bar","Pressure drop across membranes","هبوط الضغط عبر الأغشية"],["0.908 mg/L","Boron (limit ≤ 2.4 mg/L)","البورون (الحد ≤ 2.4 mg/L)"]],src:"Table 2.1, Table 1.7"},
+{c:"PT",col:0xf0f3f5,n:{en:"Post-Treatment (Remineralization & Disinfection)",ar:"المعالجة اللاحقة (إعادة التمعدن والتعقيم)"},
+ d:{en:"Permeate (pH 5.17) is remineralized with lime and CO₂ to 40 mg/L hardness as CaCO₃ and disinfected with sodium hypochlorite. The white silo is lime; the green cylinder is CO₂.",ar:"يُعاد تمعدن الماء المنتَج (pH 5.17) بالجير وثاني أكسيد الكربون حتى عسر 40 mg/L كـ CaCO₃ ثم يُعقَّم بهيبوكلوريت الصوديوم. الصومعة البيضاء للجير والأسطوانة الخضراء لثاني أكسيد الكربون."},
+ s:[["425.16 m³/h","Permeate of four trains","ماء المنتَج لأربعة خطوط"],["11.79 kg/h","Ca(OH)₂ consumed","الجير Ca(OH)₂ المستهلك"],["14.01 kg/h","CO₂ consumed (6.34 purchased)","CO₂ المستهلك (6.34 مشترى)"],["40 mg/L","Hardness as CaCO₃ (min. 30)","العسر كـ CaCO₃ (الحد الأدنى 30)"],["312.4 → 373.1 mg/L","TDS after remineralization","الملوحة بعد إعادة التمعدن"],["1.0 mg/L · 0.42 kg/h","NaOCl as Cl₂ on net product","NaOCl كـ Cl₂ على الإنتاج الصافي"]],src:"§2.1.11, Table 2.17"},
+{c:"Storage",col:0x9fb7c9,n:{en:"Product Water Storage",ar:"تخزين المياه المنتَجة"},
+ d:{en:"Treated water is stored, and the net product is split from an unallocated allowance of 2.0% kept for internal water use and losses.",ar:"تُخزَّن المياه المعالجة، ويُفصل صافي الإنتاج عن مخصص غير موزّع نسبته 2.0% للاستخدام الداخلي والفواقد."},
+ s:[["416.67 m³/h","Net product (10,000 m³/day)","صافي الإنتاج (10,000 m³/day)"],["8.49 m³/h","Allowance Q_L (203.8 m³/day, 2.0%)","المخصص Q_L (203.8 m³/day، 2.0%)"],["373.1 mg/L","TDS (limit 100–1,000)","الملوحة (الحد 100–1,000)"],["0.2–0.5 mg/L","Free chlorine limit (dose 1.0 mg/L)","حد الكلور الحر (الجرعة 1.0 mg/L)"]],src:"§2.1.11, Table 1.7"},
+{c:"P-104",col:0x4b7fd0,n:{en:"Delivery Pump",ar:"مضخة التوصيل"},
+ d:{en:"Sends the net product from the storage tank to the plant boundary.",ar:"ترسل صافي الإنتاج من خزان المنتج إلى حدود المصنع."},
+ s:[["416.67 m³/h","Net product flow","تدفق صافي الإنتاج"],["+3.0 bar","Pressure rise (outlet 3.0 bar g)","ارتفاع الضغط (المخرج 3.0 bar g)"],["48.7 kW","Electrical power (3.9% of plant)","القدرة الكهربائية (3.9% من المصنع)"],["34.7 / 46.3 kW","Hydraulic / shaft power","القدرة الهيدروليكية / على العمود"],["0.75 / 0.95","Pump / motor efficiency","كفاءة المضخة / المحرك"]],src:"§2.2.9, Table 2.26"},
+{c:"Brine",col:0xc77d2c,n:{en:"Brine Discharge",ar:"تصريف المحلول الملحي"},
+ d:{en:"Low-pressure brine from the four PX units leaves toward the sea outfall, placed away from the intake so it is not drawn back into the plant.",ar:"يخرج المحلول الملحي منخفض الضغط من مبادلات الضغط الأربعة نحو مصب البحر، وهو يبعد عن المأخذ حتى لا يُسحب مجدداً إلى المصنع."},
+ s:[["708.64 m³/h","Brine of four trains (4 × 177.16)","محلول ملحي لأربعة خطوط (4 × 177.16)"],["72,428 mg/L","Brine TDS","ملوحة المحلول الملحي"],["51,325.4 kg/h","Salt flow","تدفق الملح"],["1.0 bar g","Discharge pressure (assumed)","ضغط التصريف (مفترض)"]],src:"Table B.1, Table 3.5"}
+];
+var ENERGY={
+ n:{en:"Energy lab: the effect of the pressure exchanger",ar:"مختبر الطاقة: أثر مبادل الضغط"},
+ d:{en:"Switch the PX on or off and watch the high-pressure flow in the 3D scene. Without the PX, the high-pressure pump must handle the full RO feed.",ar:"شغّل مبادل الضغط أو أوقفه وراقب تدفق الضغط العالي في المشهد. بدون المبادل تضطر مضخة الضغط العالي لمعالجة كامل تغذية التناضح العكسي."}
+};
+
+/* ---------- three.js scene ---------- */
+var W=window.innerWidth,H=window.innerHeight;
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(W,H);
+document.body.insertBefore(renderer.domElement,document.querySelector(".top"));
+var scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(55,W/H,.05,200);
+scene.add(new THREE.HemisphereLight(0xffffff,0x405060,.9));
+var dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(6,10,6);scene.add(dl);
+var root=new THREE.Group();scene.add(root);
+var floor=new THREE.GridHelper(26,26,0x3a6a8a,0x6b8ea8);floor.position.set(0,-.01,-1);root.add(floor);
+var groups=[];
+
+function MT(c,o){return new THREE.MeshStandardMaterial(Object.assign({color:c,metalness:.4,roughness:.45},o||{}))}
+function cyl(r,h,c,x,y,z,ax,seg){var m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||28),MT(c));m.position.set(x,y,z);if(ax==="x")m.rotation.z=Math.PI/2;if(ax==="z")m.rotation.x=Math.PI/2;return m}
+function box(w,h,d,c,x,y,z,o){var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),MT(c,o));m.position.set(x,y,z);return m}
+function dome(r,c,x,y,z){var m=new THREE.Mesh(new THREE.SphereGeometry(r,24,10,0,Math.PI*2,0,Math.PI/2),MT(c));m.position.set(x,y,z);return m}
+function pumpShape(g,c,s){s=s||1;g.add(cyl(.3*s,.8*s,c,0,.4*s,0,"x"));g.add(cyl(.24*s,.7*s,0x2d3b49,-.75*s,.4*s,0,"x"));g.add(box(.9*s,.08,.7*s,0x55606a,-.2*s,.04,0));var v=cyl(.12*s,.5*s,0x9aa7b2,.1*s,.8*s,0);g.add(v)}
+function label(txt,g,y){var cv=document.createElement("canvas");cv.width=256;cv.height=64;var x=cv.getContext("2d");x.fillStyle="rgba(8,24,36,.82)";x.fillRect(0,0,256,64);x.strokeStyle="#3cc8f0";x.lineWidth=3;x.strokeRect(1,1,254,62);x.fillStyle="#fff";x.font="bold 30px Inter,sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(txt,128,34);var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.scale.set(1.5,.375,1);sp.position.set(0,y,0);sp.renderOrder=9;g.add(sp)}
+function add(i,x,z,fn,ly){var g=new THREE.Group();g.position.set(x,0,z);g.userData.id=i;fn(g);label(U[i].c,g,ly||1.9);root.add(g);groups[i]=g}
+
+add(0,-9,0,function(g){g.add(box(.12,1.3,1.5,0x6f7f8c,-.9,.65,0));for(var k=0;k<6;k++)g.add(box(.05,1.2,.04,0xaebccb,-.84,.65,-.65+k*.26));var p=new THREE.Group();p.position.x=.5;pumpShape(p,0x6f8aa5);g.add(p)});
+add(1,-6.6,0,function(g){[-.7,0,.7].forEach(function(z){g.add(cyl(.3,1.6,0x2bb3a3,0,.8,z));g.add(dome(.3,0x1f8d80,0,1.6,z));g.add(cyl(.32,.08,0x33414d,0,.04,z))})});
+add(2,-4.6,0,function(g){g.add(cyl(.5,1.2,0x7d6a3c,0,.6,0));g.add(dome(.5,0xd9a441,0,1.2,0));[[-.6,1.35,0xe08a2a],[0,1.35,0xe5c94a],[.6,1.35,0xd04f3a]].forEach(function(t){g.add(cyl(.17,.55,t[2],t[0],.28,t[1]))})},2.1);
+add(3,-2.6,1.3,function(g){pumpShape(g,0x2a6fdb,1.25)});
+add(4,-2.6,-1.3,function(g){g.add(cyl(.36,1.6,0xe7d3a8,0,.55,0,"x",36));g.add(cyl(.4,.14,0x7b8794,-.85,.55,0,"x"));g.add(cyl(.4,.14,0x7b8794,.85,.55,0,"x"));var r=new THREE.Mesh(new THREE.TorusGeometry(.38,.03,8,32),MT(0x3cc8f0,{emissive:0x1a90b0,emissiveIntensity:.6}));r.rotation.y=Math.PI/2;r.position.set(0,.55,0);g.add(r)},1.4);
+add(5,-.9,-1.3,function(g){pumpShape(g,0x5a8fe8,.8)},1.4);
+add(6,1.3,0,function(g){var r=0;for(var row=0;row<3;row++)for(var c=0;c<11;c++){var z=-1.2+c*.24,y=.28+row*.28;g.add(cyl(.1,3,0x35b5c9,0,y,z,"x",16));g.add(cyl(.115,.1,0x1b3a47,-1.5,y,z,"x",16));g.add(cyl(.115,.1,0x1b3a47,1.5,y,z,"x",16));r++}g.add(box(3.3,.06,2.9,0x4a5a68,0,.03,0))},1.5);
+add(7,4.8,0,function(g){g.add(cyl(.38,1.5,0xf0f3f5,0,.75,-.75));g.add(dome(.38,0xdfe5ea,0,1.5,-.75));g.add(cyl(.26,1.2,0x59b36a,0,.6,.75));g.add(dome(.26,0x3f8d4f,0,1.2,.75));g.add(cyl(.45,.8,0x9fc7d6,.9,.4,0))},2.1);
+add(8,7,0,function(g){g.add(cyl(.9,1.3,0x9fb7c9,0,.65,0,null,40));g.add(dome(.9,0xb7cbdb,0,1.3,0))},2);
+add(9,8.7,0,function(g){pumpShape(g,0x4b7fd0,1)});
+add(10,-2.85,-4.4,function(g){g.add(cyl(.14,2.8,0xc77d2c,0,.3,-.6,"z"));[-.5,0,.5].forEach(function(x){var s=new THREE.Mesh(new THREE.SphereGeometry(.1,12,12),MT(0xc77d2c));s.position.set(x,.3,-1.4);g.add(s)})},1.2);
+
+/* ---------- environment: land, sea, city ---------- */
+floor.visible=false;
+var land=box(32.5,.2,14.4,0xcdbf97,5.75,-.16,1.8);root.add(land);
+var seaMeshes=[];
+function mkSea(w,d,x,z){var m=new THREE.Mesh(new THREE.PlaneGeometry(w,d,26,26),new THREE.MeshStandardMaterial({color:0x1b7fb5,transparent:true,opacity:.88,roughness:.25,metalness:.2,flatShading:true}));m.rotation.x=-Math.PI/2;m.position.set(x,-.12,z);root.add(m);seaMeshes.push(m)}
+mkSea(11.5,25,-16.25,-3.5);mkSea(32.5,10.6,5.75,-10.7);
+function waves(t){seaMeshes.forEach(function(m){var a=m.geometry.attributes.position;for(var i=0;i<a.count;i++){var x=a.getX(i),y=a.getY(i);a.setZ(i,Math.sin(x*.7+t*1.6)*.07+Math.cos(y*.8+t*1.2)*.06)}a.needsUpdate=true})}
+root.add(cyl(.12,3,0x6f8aa5,-11.4,.2,0,"x"));
+var seed=7;function rnd(){seed=(seed*16807)%2147483647;return seed/2147483647}
+for(var cx=0;cx<4;cx++)for(var cz=0;cz<5;cz++){var bh=.6+rnd()*2.4,bw=.9+rnd()*.4,bx=12.8+cx*1.9,bz=-3.8+cz*2.2;var bd=box(bw,bh,bw,0xb9c6d2,bx,bh/2-.06,bz);bd.material.color.offsetHSL(0,0,(rnd()-.5)*.12);root.add(bd);for(var r=1;r<bh/.5;r++)root.add(box(bw+.03,.07,bw*.55,0xffe29a,bx,r*.5,bz,{emissive:0xffd36b,emissiveIntensity:.6}))}
+function tag(txt,x,y,z){var tg=new THREE.Group();tg.position.set(x,0,z);label(txt,tg,y);root.add(tg)}
+tag("Sea · البحر",-16,.9,0);tag("Sea · البحر",5,.9,-10);tag("City · المدينة",16.5,3.8,.6);
+/* ---------- pipes and particles ---------- */
+var Y=.55;
+function P(a){return a.map(function(p){return new THREE.Vector3(p[0],Y,p[1])})}
+var paths=[
+ {id:"feed",c:0x3aa0ff,n:28,pts:P([[-12.2,0],[-9,0],[-6.6,0],[-4.6,0],[-3.8,0]])},
+ {id:"a1",c:0x3aa0ff,n:10,nOff:28,pts:P([[-3.8,0],[-3.8,1.3],[-3.2,1.3]])},
+ {id:"a2",c:0xff5a4a,n:10,nOff:28,pts:P([[-2.0,1.3],[-1.4,1.3],[-1.4,0],[-.2,0]])},
+ {id:"b1",c:0x3aa0ff,n:18,pts:P([[-3.8,0],[-3.8,-1.3],[-3.4,-1.3]])},
+ {id:"b2",c:0xff5a4a,n:18,pts:P([[-1.8,-1.3],[-.5,-1.3],[-.5,0],[-.2,0]])},
+ {id:"perm",c:0x38e8d0,n:10,pts:P([[2.9,.5],[4.2,.5],[4.2,0],[4.4,0],[5.3,0],[6.1,0],[7.9,0],[8.2,0],[9.8,0],[11.8,0]])},
+ {id:"bh",c:0xff9d3a,n:17,pts:P([[2.9,-.5],[2.9,-2.2],[-2.35,-2.2],[-2.35,-1.65]])},
+ {id:"bl",c:0xc77d2c,n:17,pts:P([[-2.85,-1.65],[-2.85,-6.2]])}
+];
+var UP=new THREE.Vector3(0,1,0);
+paths.forEach(function(p){
+ var len=[],tot=0,i;for(i=0;i<p.pts.length-1;i++){var d=p.pts[i+1].distanceTo(p.pts[i]);len.push(d);tot+=d;
+  var m=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,d,8),new THREE.MeshBasicMaterial({color:p.c,transparent:true,opacity:.45}));
+  var dir=p.pts[i+1].clone().sub(p.pts[i]).normalize();m.position.copy(p.pts[i].clone().add(p.pts[i+1]).multiplyScalar(.5));m.quaternion.setFromUnitVectors(UP,dir);root.add(m);p.mesh=(p.mesh||[]);p.mesh.push(m)}
+ p.len=len;p.tot=tot;var N=Math.max(p.n,28);
+ p.geo=new THREE.BufferGeometry();p.geo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(N*3),3));
+ p.pt=new THREE.Points(p.geo,new THREE.PointsMaterial({color:p.c,size:.16,sizeAttenuation:true}));p.pt.frustumCulled=false;root.add(p.pt);
+});
+function curN(p){if(p.id==="a1"||p.id==="a2")return pxOn?10:28;if(p.id==="b1"||p.id==="b2")return pxOn?18:0;return p.n}
+function posOn(p,s,out){s=((s%p.tot)+p.tot)%p.tot;for(var i=0;i<p.len.length;i++){if(s<=p.len[i]){var t=s/p.len[i];out.lerpVectors(p.pts[i],p.pts[i+1],t);return}s-=p.len[i]}}
+var tmp=new THREE.Vector3();
+function flow(time){paths.forEach(function(p){var n=curN(p),a=p.geo.attributes.position;
+ for(var i=0;i<a.count;i++){if(i<n){posOn(p,(i/n)*p.tot+time*1.1,tmp);a.setXYZ(i,tmp.x,tmp.y+.09,tmp.z)}else a.setXYZ(i,0,-50,0)}
+ a.needsUpdate=true;p.mesh.forEach(function(m){m.visible=curN(p)>0})})}
+
+/* ---------- camera / interaction ---------- */
+var th=.7,ph=.9,dist=28,tgt=new THREE.Vector3(2,0,-1.5),tgtGoal=tgt.clone();
+var arScale=.1,hasGyro=false,needPlace=false,dev={a:0,b:0,g:0},stream=null,spin=0;
+function lookCam(){var s=Math.sin(ph);cam.position.set(tgt.x+dist*s*Math.sin(th),tgt.y+dist*Math.cos(ph),tgt.z+dist*s*Math.cos(th));cam.lookAt(tgt)}
+var zee=new THREE.Vector3(0,0,1),eu=new THREE.Euler(),q0=new THREE.Quaternion(),q1=new THREE.Quaternion(-Math.sqrt(.5),0,0,Math.sqrt(.5));
+function gyroQ(q){var o=((screen.orientation&&screen.orientation.angle)||0)*Math.PI/180,D=Math.PI/180;eu.set(dev.b*D,dev.a*D,-dev.g*D,"YXZ");q.setFromEuler(eu);q.multiply(q1);q.multiply(q0.setFromAxisAngle(zee,-o))}
+function placeAR(){var f=new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion);f.y=0;if(f.lengthSq()<1e-4)f.set(0,0,-1);f.normalize();var r=new THREE.Vector3().crossVectors(f,UP);root.position.set(f.x*3,-1.1,f.z*3);root.rotation.y=Math.atan2(-r.z,r.x);root.scale.setScalar(arScale)}
+window.addEventListener("deviceorientation",function(e){if(e.alpha==null)return;hasGyro=true;dev.a=e.alpha;dev.b=e.beta;dev.g=e.gamma;if(needPlace&&mode==="ar"){gyroQ(cam.quaternion);placeAR();needPlace=false}});
+
+var ptr={},pd=0,moved=0,down=null;
+var cv=renderer.domElement;
+cv.addEventListener("pointerdown",function(e){cv.setPointerCapture(e.pointerId);distGoal=null;phGoal=null;ptr[e.pointerId]=[e.clientX,e.clientY];moved=0;down=[e.clientX,e.clientY];pd=pinchD()});
+cv.addEventListener("pointermove",function(e){var p=ptr[e.pointerId];if(!p)return;var dx=e.clientX-p[0],dy=e.clientY-p[1];ptr[e.pointerId]=[e.clientX,e.clientY];moved+=Math.abs(dx)+Math.abs(dy);var n=Object.keys(ptr).length;
+ if(n===2){var d=pinchD();if(pd){var k=d/pd;if(mode==="ar"){arScale=Math.min(.6,Math.max(.04,arScale*k));root.scale.setScalar(arScale)}else dist=Math.min(40,Math.max(4,dist/k))}pd=d}
+ else if(mode==="ar"){root.rotation.y+=dx*.01}else{th-=dx*.008;ph=Math.min(1.5,Math.max(.25,ph-dy*.006))}});
+function end(e){delete ptr[e.pointerId];pd=0;if(moved<8&&down&&Object.keys(ptr).length===0)pick(e.clientX,e.clientY)}
+cv.addEventListener("pointerup",end);cv.addEventListener("pointercancel",function(e){delete ptr[e.pointerId]});
+cv.addEventListener("wheel",function(e){distGoal=null;dist=Math.min(40,Math.max(4,dist*(1+e.deltaY*.001)))},{passive:true});
+function pinchD(){var k=Object.keys(ptr);if(k.length<2)return 0;var a=ptr[k[0]],b=ptr[k[1]];return Math.hypot(a[0]-b[0],a[1]-b[1])}
+var ray=new THREE.Raycaster(),mv=new THREE.Vector2();
+function pick(x,y){mv.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(mv,cam);var hit=ray.intersectObjects(groups.filter(Boolean),true)[0];if(hit){var o=hit.object;while(o&&o.userData.id===undefined)o=o.parent;if(o)select(o.userData.id)}}
+
+function glow(i,on){var g=groups[i];if(!g)return;g.traverse(function(o){if(o.material&&o.material.emissive&&!o.isSprite&&o.geometry&&o.geometry.type!=="TorusGeometry"){o.material.emissive.setHex(on?0x1b8fb5:0x000000);o.material.emissiveIntensity=on?.55:0}})}
+function select(i){glow(sel,false);sel=i;showEn=false;if(i>=0){glow(i,true);var g=groups[i];tgtGoal.set(g.position.x,0,g.position.z);distGoal=9;phGoal=.95}else{tgtGoal.set(2,0,-1.5);distGoal=28;phGoal=.9}render()}
+
+/* ---------- UI ---------- */
+var sheet=document.getElementById("sheet"),chips=document.getElementById("chips");
+function T(o){return o[lang]}
+function stat(s){return '<div class="st"><b>'+s[0]+'</b><span>'+(lang==="en"?s[1]:s[2])+'</span></div>'}
+function render(){
+ var u=UI[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+ document.getElementById("ttl").textContent=u.t;
+ document.getElementById("bMode").textContent=mode==="ar"?u.d3:u.ar;
+ document.getElementById("bLang").textContent=lang==="en"?"ع":"EN";
+ var be=document.getElementById("bEn");be.textContent=u.en;be.className=showEn?"on":"";
+ document.getElementById("hint").textContent=mode==="ar"?u.hA:u.h3;
+ var bl=document.getElementById("bLay"),br=document.getElementById("bRot"),bs=document.getElementById("bStop");bl.textContent="⌂ "+u.lay;br.textContent="⟳ "+u.rt;br.className=rot?"on":"";bs.textContent=(paused?"▶ ":"⏸ ")+(paused?u.pl:u.st);bs.className=paused?"on":"";
+ var h='<button class="'+(sel<0&&!showEn?"on":"")+'" data-i="-1">'+u.ov+'</button>';
+ U.forEach(function(x,i){h+='<button class="'+(sel===i?"on":"")+'" data-i="'+i+'">'+x.c.split(" ")[0]+'</button>'});
+ chips.innerHTML=h;
+ var s="";
+ if(showEn){var a=pxOn;
+  s='<button class="xb" id="xb">'+u.ex+'</button><h2>'+T(ENERGY.n)+'</h2><p>'+T(ENERGY.d)+'</p><div style="display:flex;gap:6px;margin-bottom:10px"><button class="'+(a?"on":"")+'" id="px1">PX ON</button><button class="'+(!a?"on":"")+'" id="px0">PX OFF</button></div>'+
+  '<div class="grid" style="grid-template-columns:1fr">'+
+  '<div class="st"><span>'+(lang==="en"?"Electrical power of the RO section, per train (kW)":"القدرة الكهربائية لقسم التناضح العكسي لكل خط (kW)")+'</span><div class="bar" style="width:'+(a?39.3:100)+'%">'+(a?"245.5":"625.0")+' kW</div>'+
+  '<span>'+(lang==="en"?"Specific energy of the RO section (kWh/m³ permeate)":"الطاقة النوعية لقسم التناضح العكسي (kWh/m³ منتَج)")+'</span><div class="bar" style="width:'+(a?39.3:100)+'%">'+(a?"2.31":"5.88")+' kWh/m³</div>'+
+  '<span>'+(lang==="en"?"High-pressure pump flow (m³/h)":"تدفق مضخة الضغط العالي (m³/h)")+'</span><div class="bar" style="width:'+(a?37.5:100)+'%">'+(a?"106.29":"283.45")+' m³/h</div></div></div>'+
+  '<p class="src">'+(lang==="en"?"With the PX the RO section power falls by 60.7% (625.0 → 245.5 kW per train). Source: §2.2.12":"مع مبادل الضغط تنخفض قدرة قسم التناضح العكسي بنسبة 60.7% (625.0 ← 245.5 kW لكل خط). المصدر: §2.2.12")+'</p>';
+ }else if(sel<0){s='<h2>'+T(OV.name)+'</h2><span class="tag">'+OV.code+'</span><p>'+T(OV.d)+'</p><div class="grid">'+OV.s.map(stat).join("")+'</div><p class="src">'+u.src+': '+OV.src+'</p>'}
+ else{var x=U[sel];s='<button class="xb" id="xb">'+u.ex+'</button><h2>'+T(x.n)+'</h2><span class="tag">'+x.c+'</span><p>'+T(x.d)+'</p><div class="grid">'+x.s.map(stat).join("")+'</div><p class="src">'+u.src+': '+x.src+'</p>'}
+ sheet.innerHTML=s;
+ var xb=document.getElementById("xb");if(xb)xb.onclick=function(){select(-1)};
+ var b1=document.getElementById("px1"),b0=document.getElementById("px0");if(b1){b1.onclick=function(){pxOn=true;render()};b0.onclick=function(){pxOn=false;render()}}
+}
+chips.addEventListener("click",function(e){var b=e.target.closest("button");if(b)select(+b.dataset.i)});
+document.getElementById("bLang").onclick=function(){lang=lang==="en"?"ar":"en";render()};
+document.getElementById("bEn").onclick=function(){showEn=!showEn;if(showEn){glow(sel,false);sel=-1}render()};
+document.getElementById("bLay").onclick=function(){select(-1)};
+document.getElementById("bRot").onclick=function(){rot=!rot;render()};
+document.getElementById("bStop").onclick=function(){paused=!paused;render()};
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.style.display="block";setTimeout(function(){t.style.display="none"},4500)}
+document.getElementById("bMode").onclick=async function(){
+ if(mode==="ar"){stopAR();return}
+ try{if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission){var r=await DeviceOrientationEvent.requestPermission();if(r!=="granted")throw 0}}catch(e){}
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});var v=document.getElementById("vid");v.srcObject=stream;await v.play()}
+ catch(e){toast(UI[lang].cam);return}
+ mode="ar";document.body.classList.add("ar");floor.visible=false;root.scale.setScalar(arScale);cam.position.set(0,0,0);cam.quaternion.identity();needPlace=true;
+ setTimeout(function(){if(needPlace){placeAR();needPlace=false}},900);render()};
+function stopAR(){mode="3d";document.body.classList.remove("ar");if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}floor.visible=false;root.position.set(0,0,0);root.rotation.set(0,0,0);root.scale.setScalar(1);render()}
+
+window.addEventListener("resize",function(){W=innerWidth;H=innerHeight;renderer.setSize(W,H);cam.aspect=W/H;cam.updateProjectionMatrix()});
+var clk=new THREE.Clock(),at=0;
+(function loop(){requestAnimationFrame(loop);var dt=clk.getDelta();if(!paused)at+=dt;flow(at*.9);waves(at);var idle=!Object.keys(ptr).length;
+ if(mode==="ar"){if(hasGyro&&!needPlace)gyroQ(cam.quaternion);if(rot&&!paused&&idle)root.rotation.y+=.004}
+ else{tgt.lerp(tgtGoal,.08);if(distGoal!==null)dist+=(distGoal-dist)*.06;if(phGoal!==null)ph+=(phGoal-ph)*.06;if(rot&&!paused&&idle)th+=.003;lookCam()}
+ renderer.render(scene,cam)})();
+render();
+})();
+</script>
+</body>
+</html>
